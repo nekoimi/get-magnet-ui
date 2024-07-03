@@ -32,7 +32,7 @@
 
 #### ⛱️ 线上预览
 
-- vue3.x 版本预览（vue-next-admin）<a href="https://lyt-top.gitee.io/vue-next-admin-preview/#/login" target="_blank">https://lyt-top.gitee.io/vue-next-admin-preview/#/login</a>
+- vue3.x 版本预览（vue-next-admin）<a href="http://vuenextadmin.ccfast.cc/ " target="_blank">http://vuenextadmin.ccfast.cc/ </a>
 - vue2.x 版本预览（vue-prev-admin）<a href="https://lyt-top.gitee.io/vue-prev-admin-preview/#/login" target="_blank">https://lyt-top.gitee.io/vue-prev-admin-preview/#/login</a>
 - vue3.x + uni-app 商城 H5（vue-next-admin-shop）<a href="https://lyt-top.gitee.io/vue-next-admin-shop-preview" target="_blank">https://lyt-top.gitee.io/vue-next-admin-shop-preview</a>
 
@@ -83,9 +83,9 @@ cnpm run build
 
 #### 💯 学习交流加 QQ 群
 
-> 1 - 4 交流群已满，请加 vue-next-admin 交流群 5
+> 1 - 4 交流群已满，请加以下群号，感谢老哥们支持！
 
-群号：556254895
+群号：184948102
 
 其它交流群请查看文档首页 [vueNextAdmin 解疑问](https://lyt-top.gitee.io/vue-next-admin-doc-preview/)
 

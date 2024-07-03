@@ -2,6 +2,14 @@
 
 🎉🎉🔥 `vue-next-admin` 基于 vue3.x 、Typescript、vite、Element plus 等，适配手机、平板、pc 的后台开源免费模板库（vue2.x 请切换 vue-prev-admin 分支）
 
+## 2.4.34
+
+`2023.04.14`
+
+- 🌟 更新 依赖更新最新版本
+- 🎯 优化 演示界面 [列表自适应](https://lyt-top.gitee.io/vue-next-admin-preview/#/pages/listAdapt) 与 [图片懒加载](https://lyt-top.gitee.io/vue-next-admin-preview/#/pages/lazyImg)
+- 🐞 修复 `font-awesome.min.css` 在线 `cdn` 无法访问问题，[在线 cdn](https://lyt-top.gitee.io/vue-next-admin-doc-preview/config/build/#_3-cdn-%E5%8A%A0%E9%80%9F)，感谢群友@Lauyping
+
 ## 2.4.33
 
 `2023.04.11`

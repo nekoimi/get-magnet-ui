@@ -86,6 +86,7 @@ onMounted(() => {
 <style scoped lang="scss">
 .upgrade-dialog {
 	:deep(.el-dialog) {
+		padding: 0 !important;
 		.el-dialog__body {
 			padding: 0 !important;
 		}
