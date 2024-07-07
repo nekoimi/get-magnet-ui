@@ -1,8 +1,8 @@
 {
-	"name": "vue-next-admin",
-	"version": "2.4.33",
-	"description": "vue3 vite next admin template",
-	"author": "lyt_20201208",
+	"name": "get-magnet-ui",
+	"version": "0.0.1",
+	"description": "get-magnet-ui",
+	"author": "nekoimi",
 	"license": "MIT",
 	"scripts": {
 		"dev": "vite --force",
@@ -21,6 +21,7 @@
 		"echarts-wordcloud": "^2.1.0",
 		"element-plus": "^2.6.1",
 		"js-cookie": "^3.0.5",
+		"js-sha256": "^0.11.0",
 		"js-table2excel": "^1.1.2",
 		"jsplumb": "^2.15.6",
 		"mitt": "^3.0.1",
@@ -63,9 +64,6 @@
 		"last 2 versions",
 		"not dead"
 	],
-	"bugs": {
-		"url": "https://gitee.com/lyt-top/vue-next-admin/issues"
-	},
 	"engines": {
 		"node": ">=16.0.0",
 		"npm": ">= 7.0.0"
@@ -75,12 +73,6 @@
 		"vue3",
 		"vuejs/vue-next",
 		"element-ui",
-		"element-plus",
-		"vue-next-admin",
-		"next-admin"
-	],
-	"repository": {
-		"type": "git",
-		"url": "https://gitee.com/lyt-top/vue-next-admin.git"
-	}
+		"element-plus"
+	]
 }

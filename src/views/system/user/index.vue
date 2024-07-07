@@ -86,7 +86,7 @@ const getTableData = () => {
 	const data = [];
 	for (let i = 0; i < 2; i++) {
 		data.push({
-			userName: i === 0 ? 'admin' : 'test',
+			username: i === 0 ? 'admin' : 'test',
 			userNickname: i === 0 ? '我是管理员' : '我是普通用户',
 			roleSign: i === 0 ? 'admin' : 'common',
 			department: i === 0 ? ['vueNextAdmin', 'IT外包服务'] : ['vueNextAdmin', '资本控股'],
@@ -116,7 +116,7 @@ const onOpenEditUser = (type: string, row: RowUserType) => {
 };
 // 删除用户
 const onRowDel = (row: RowUserType) => {
-	ElMessageBox.confirm(`此操作将永久删除账户名称：“${row.userName}”，是否继续?`, '提示', {
+	ElMessageBox.confirm(`此操作将永久删除账户名称：“${row.username}”，是否继续?`, '提示', {
 		confirmButtonText: '确认',
 		cancelButtonText: '取消',
 		type: 'warning',
