@@ -111,25 +111,22 @@ const onSignIn = async () => {
   }).finally(() => {
     state.loading.signIn = false;
   })
-  // // 存储 token 到浏览器缓存
-  // Session.set('token', Math.random().toString(36).substr(0));
+};
+// 登录成功后的跳转
+const signInSuccess = (data: any | undefined) => {
   // // 模拟数据，对接接口时，记得删除多余代码及对应依赖的引入。用于 `/src/stores/userInfo.ts` 中不同用户登录判断（模拟数据）
   // Cookies.set('username', state.ruleForm.username);
   // if (!themeConfig.value.isRequestRoutes) {
-  // 	// 前端控制路由，2、请注意执行顺序
-  // 	const isNoPower = await initFrontEndControlRoutes();
-  // 	signInSuccess(isNoPower);
+  	// 前端控制路由，2、请注意执行顺序
+  	// const isNoPower = await initFrontEndControlRoutes();
   // } else {
   // 	// 模拟后端控制路由，isRequestRoutes 为 true，则开启后端控制路由
   // 	// 添加完动态路由，再进行 router 跳转，否则可能报错 No match found for location with path "/"
   // 	const isNoPower = await initBackEndControlRoutes();
   // 	// 执行完 initBackEndControlRoutes，再执行 signInSuccess
-  // 	signInSuccess(isNoPower);
   // }
-};
-// 登录成功后的跳转
-const signInSuccess = (data: any | undefined) => {
-  console.log(data)
+
+
   // 存储 token 到浏览器缓存
   Session.set('token', data.token);
   // 初始化登录成功时间问候语

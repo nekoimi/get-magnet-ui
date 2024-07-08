@@ -36,12 +36,12 @@ service.interceptors.response.use(
         // 对响应数据做点什么
         const res = response.data;
         if (res.code && res.code !== 0) {
-            // `token` 过期或者账号已在别处登录
-            if (res.code === 401 || res.code === 4001) {
-                Session.clear(); // 清除浏览器全部临时缓存
-                window.location.href = '/'; // 去登录页
-                ElMessageBox.alert('你已被登出，请重新登录', '提示', {})
+            // 认证信息异常
+            if (res.code === 401 || res.code === 20401) {
+                ElMessageBox.alert(`${res.msg}，请重新登录`, '提示', {})
                     .then(() => {
+                        Session.clear(); // 清除浏览器全部临时缓存
+                        window.location.href = '/'; // 去登录页
                     })
                     .catch(() => {
                     });
@@ -60,6 +60,20 @@ service.interceptors.response.use(
         } else {
             if (error.response.data) {
                 if (error.response.data.msg) {
+                    let errCode = error.response.data.code
+                    if (errCode && errCode != 0) {
+                        // 认证信息异常
+                        if (errCode === 401 || errCode === 20401) {
+                            ElMessageBox.alert(`${error.response.data.msg}，请重新登录`, '提示', {})
+                                .then(() => {
+                                    Session.clear(); // 清除浏览器全部临时缓存
+                                    window.location.href = '/'; // 去登录页
+                                })
+                                .catch(() => {
+                                });
+                            return;
+                        }
+                    }
                     ElMessage.error(error.response.data.msg)
                 } else {
                     ElMessage.error(error.response.statusText)
