@@ -106,40 +106,34 @@ const onSignIn = async () => {
   useLoginApi().signIn({
     ...state.ruleForm,
     password: encodePassword(state.ruleForm.password)
-  }).then(resp => {
-    signInSuccess(resp.data)
+  }).then(async resp => {
+    // 存储 token 到浏览器缓存
+    Session.set('token', resp.data.token);
+    // 加载菜单路由
+    const isNoPower = await initFrontEndControlRoutes();
+    if (isNoPower) {
+      ElMessage.warning('没有权限');
+      Session.clear();
+    } else {
+      signInSuccess(resp.data)
+    }
   }).finally(() => {
     state.loading.signIn = false;
   })
 };
 // 登录成功后的跳转
 const signInSuccess = (data: any | undefined) => {
-  // // 模拟数据，对接接口时，记得删除多余代码及对应依赖的引入。用于 `/src/stores/userInfo.ts` 中不同用户登录判断（模拟数据）
-  // Cookies.set('username', state.ruleForm.username);
-  // if (!themeConfig.value.isRequestRoutes) {
-  	// 前端控制路由，2、请注意执行顺序
-  	// const isNoPower = await initFrontEndControlRoutes();
-  // } else {
-  // 	// 模拟后端控制路由，isRequestRoutes 为 true，则开启后端控制路由
-  // 	// 添加完动态路由，再进行 router 跳转，否则可能报错 No match found for location with path "/"
-  // 	const isNoPower = await initBackEndControlRoutes();
-  // 	// 执行完 initBackEndControlRoutes，再执行 signInSuccess
-  // }
-
-
-  // 存储 token 到浏览器缓存
-  Session.set('token', data.token);
   // 初始化登录成功时间问候语
   let currentTimeInfo = currentTime.value;
   // 登录成功，跳到转首页
   // 如果是复制粘贴的路径，非首页/登录页，那么登录成功后重定向到对应的路径中
   if (route.query?.redirect) {
-  	router.push({
-  		path: <string>route.query?.redirect,
-  		query: Object.keys(<string>route.query?.params).length > 0 ? JSON.parse(<string>route.query?.params) : '',
-  	});
+    router.push({
+      path: <string>route.query?.redirect,
+      query: Object.keys(<string>route.query?.params).length > 0 ? JSON.parse(<string>route.query?.params) : '',
+    });
   } else {
-  	router.push('/');
+    router.push('/');
   }
   // 登录成功提示
   const signInText = t('message.signInText');
