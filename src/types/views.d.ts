@@ -328,3 +328,31 @@ declare type TableDemoState = {
 		printName: string;
 	};
 };
+
+/**
+ * views magnets
+ */
+// 磁力链接类型
+declare type MagnetType = {
+	id: number;
+	created_at: string;
+	updated_at: string;
+	origin: string;
+	title: string;
+	number: string;
+	optimal_link: string;
+	links: string[];
+	raw_url_host: string;
+	raw_url_path: string;
+	status: number;
+	actress0: string;
+	followed_by: string;
+};
+
+interface MagnetTableType extends TableType {
+	data: MagnetType[];
+}
+
+declare interface MagnetState {
+	tableData: MagnetTableType;
+}
