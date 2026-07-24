@@ -5,8 +5,8 @@
 			<el-table :data="jobs" v-loading="loading">
 				<el-table-column prop="name" label="任务名" min-width="180" />
 				<el-table-column prop="cron" label="Cron" width="150" />
-				<el-table-column prop="next_run" label="下次执行" min-width="180" />
-				<el-table-column prop="last_run" label="最近执行" min-width="180" />
+				<el-table-column label="下次执行" min-width="180"><template #default="{ row }">{{ formatDateTime(row.next_run) }}</template></el-table-column>
+				<el-table-column label="最近执行" min-width="180"><template #default="{ row }">{{ formatDateTime(row.last_run) }}</template></el-table-column>
 				<el-table-column label="结果" width="100">
 					<template #default="{ row }">
 						<el-tag v-if="row.status" :type="row.status === 'success' ? 'success' : 'danger'">{{ row.status }}</el-tag>
@@ -22,9 +22,11 @@
 <script setup lang="ts" name="opsJobs">
 import { onMounted, ref } from 'vue';
 import { useOpsApi } from '/@/api/ops';
+import { formatDateTime } from '/@/utils/business';
+import type { JobSnapshot } from '/@/utils/business';
 const api = useOpsApi();
 const loading = ref(false);
-const jobs = ref<any[]>([]);
+const jobs = ref<JobSnapshot[]>([]);
 const load = async () => {
 	loading.value = true;
 	try { const res = await api.jobs(); jobs.value = res.data || []; }

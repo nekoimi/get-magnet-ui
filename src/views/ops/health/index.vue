@@ -21,7 +21,7 @@
 						<el-descriptions-item label="版本">{{ version.version || '-' }}</el-descriptions-item>
 						<el-descriptions-item label="Commit">{{ version.commit || '-' }}</el-descriptions-item>
 						<el-descriptions-item label="Go">{{ version.go_version || '-' }}</el-descriptions-item>
-						<el-descriptions-item label="启动时间">{{ version.started_at || '-' }}</el-descriptions-item>
+						<el-descriptions-item label="启动时间">{{ formatDateTime(version.started_at) }}</el-descriptions-item>
 						<el-descriptions-item label="运行时长">{{ uptime }}</el-descriptions-item>
 					</el-descriptions>
 				</el-card>
@@ -33,16 +33,19 @@
 <script setup lang="ts" name="opsHealth">
 import { computed, onMounted, ref } from 'vue';
 import { useOpsApi } from '/@/api/ops';
+import { formatDateTime } from '/@/utils/business';
+import type { ServiceHealth, VersionInfo } from '/@/utils/business';
 const api = useOpsApi();
 const loading = ref(false);
-const services = ref<any[]>([]);
-const version = ref<any>({});
+const services = ref<Array<ServiceHealth & { name: string }>>([]);
+const version = ref<VersionInfo>({});
 const uptime = computed(() => `${Math.floor((version.value.uptime_seconds || 0) / 86400)}天 ${Math.floor(((version.value.uptime_seconds || 0) % 86400) / 3600)}小时`);
 const load = async () => {
 	loading.value = true;
 	try {
 		const [healthRes, versionRes] = await Promise.all([api.health(), api.version()]);
-		services.value = Object.entries(healthRes.data?.services || {}).map(([name, value]: [string, any]) => ({ name, ...value }));
+		const healthServices = (healthRes.data?.services || {}) as Record<string, ServiceHealth>;
+		services.value = Object.entries(healthServices).map(([name, value]) => ({ name, ...value }));
 		version.value = versionRes.data || {};
 	} finally { loading.value = false; }
 };

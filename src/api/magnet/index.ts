@@ -52,6 +52,12 @@ export function useMagnetApi() {
 				method: 'get',
 			});
 		},
+		sourceOptions: () => {
+			return request({
+				url: '/api/v1/magnets/sourceOptions',
+				method: 'get',
+			});
+		},
 		markStatus: (data: object) => {
 			return request({
 				url: '/api/v1/magnets/markStatus',

@@ -29,6 +29,7 @@
 import { reactive, ref } from 'vue';
 import { ElMessage, FormInstance, FormRules } from 'element-plus';
 import { useCrawlerApi } from '/@/api/crawler';
+import { getErrorMessage } from '/@/utils/business';
 
 const formRef = ref<FormInstance>();
 const state = reactive({
@@ -58,8 +59,8 @@ const onSubmit = async () => {
 			await api.submitJavDB({ url: state.form.url });
 		}
 		ElMessage.success('采集任务已提交');
-	} catch (error) {
-		ElMessage.error('提交采集任务失败');
+	} catch (error: unknown) {
+		ElMessage.error(getErrorMessage(error, '提交采集任务失败'));
 	} finally {
 		state.loading = false;
 	}

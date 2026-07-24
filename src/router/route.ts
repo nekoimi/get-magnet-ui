@@ -70,7 +70,7 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 				meta: {
 					title: 'message.router.system',
 					isLink: '',
-					isHide: false,
+					isHide: true,
 					isKeepAlive: true,
 					isAffix: false,
 					isIframe: false,
@@ -220,6 +220,21 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 				},
 				children: [
 					{
+						path: '/crawler/status',
+						name: 'crawlerStatus',
+						component: () => import('/@/views/crawler/status/index.vue'),
+						meta: {
+							title: '采集状态',
+							isLink: '',
+							isHide: false,
+							isKeepAlive: true,
+							isAffix: false,
+							isIframe: false,
+							roles: ['admin', 'common'],
+							icon: 'ele-DataAnalysis',
+						},
+					},
+					{
 						path: '/crawler/quickSubmit',
 						name: 'crawlerQuickSubmit',
 						component: () => import('/@/views/crawler/quickSubmit/index.vue'),
@@ -243,6 +258,15 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 				meta: {
 					title: '系统设置', isLink: '', isHide: false, isKeepAlive: true, isAffix: false,
 					isIframe: false, roles: ['admin'], icon: 'ele-Setting',
+				},
+			},
+			{
+				path: '/media',
+				name: 'mediaList',
+				component: () => import('/@/views/media/index.vue'),
+				meta: {
+					title: '播放与 STRM', isLink: '', isHide: false, isKeepAlive: true, isAffix: false,
+					isIframe: false, roles: ['admin', 'common'], icon: 'ele-VideoPlay',
 				},
 			},
 			{
@@ -273,7 +297,7 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 				meta: {
 					title: 'message.router.limits',
 					isLink: '',
-					isHide: false,
+					isHide: true,
 					isKeepAlive: true,
 					isAffix: false,
 					isIframe: false,
@@ -371,7 +395,7 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 				meta: {
 					title: 'message.router.menu',
 					isLink: '',
-					isHide: false,
+					isHide: true,
 					isKeepAlive: true,
 					isAffix: false,
 					isIframe: false,
@@ -500,7 +524,7 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 				meta: {
 					title: 'message.router.funIndex',
 					isLink: '',
-					isHide: false,
+					isHide: true,
 					isKeepAlive: true,
 					isAffix: false,
 					isIframe: false,
@@ -668,7 +692,7 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 				meta: {
 					title: 'message.router.pagesIndex',
 					isLink: '',
-					isHide: false,
+					isHide: true,
 					isKeepAlive: true,
 					isAffix: false,
 					isIframe: false,
@@ -994,7 +1018,7 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 				meta: {
 					title: 'message.router.makeIndex',
 					isLink: '',
-					isHide: false,
+					isHide: true,
 					isKeepAlive: true,
 					isAffix: false,
 					isIframe: false,
@@ -1072,7 +1096,7 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 				meta: {
 					title: 'message.router.paramsIndex',
 					isLink: '',
-					isHide: false,
+					isHide: true,
 					isKeepAlive: true,
 					isAffix: false,
 					isIframe: false,
@@ -1154,7 +1178,7 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 				meta: {
 					title: 'message.router.visualizingIndex',
 					isLink: '',
-					isHide: false,
+					isHide: true,
 					isKeepAlive: true,
 					isAffix: false,
 					isIframe: false,
@@ -1206,7 +1230,7 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 				meta: {
 					title: 'message.router.chartIndex',
 					isLink: '',
-					isHide: false,
+					isHide: true,
 					isKeepAlive: true,
 					isAffix: false,
 					isIframe: false,
@@ -1236,7 +1260,7 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 				meta: {
 					title: 'message.router.tools',
 					isLink: '',
-					isHide: false,
+					isHide: true,
 					isKeepAlive: true,
 					isAffix: false,
 					isIframe: false,
@@ -1251,7 +1275,7 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 				meta: {
 					title: 'message.router.layoutLinkView',
 					isLink: 'https://element-plus.gitee.io/#/zh-CN/component/installation',
-					isHide: false,
+					isHide: true,
 					isKeepAlive: false,
 					isAffix: false,
 					isIframe: false,
@@ -1266,7 +1290,7 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 				meta: {
 					title: 'message.router.layoutIframeViewOne',
 					isLink: 'https://nodejs.org/zh-cn/',
-					isHide: false,
+					isHide: true,
 					isKeepAlive: true,
 					isAffix: true,
 					isIframe: true,
@@ -1281,7 +1305,7 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 				meta: {
 					title: 'message.router.layoutIframeViewTwo',
 					isLink: 'https://undraw.co/illustrations',
-					isHide: false,
+					isHide: true,
 					isKeepAlive: true,
 					isAffix: true,
 					isIframe: true,

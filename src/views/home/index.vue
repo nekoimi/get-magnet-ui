@@ -55,6 +55,7 @@
 import { computed, onMounted, reactive } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useDashboardApi } from '/@/api/dashboard';
+import { getErrorMessage } from '/@/utils/business';
 
 type StatusCount = {
 	status: number;
@@ -109,8 +110,8 @@ const getSummary = async () => {
 		const api = useDashboardApi();
 		const res = await api.summary();
 		state.summary = { ...emptySummary(), ...(res.data || {}) };
-	} catch (error) {
-		ElMessage.error('获取首页统计失败');
+	} catch (error: unknown) {
+		ElMessage.error(getErrorMessage(error, '获取首页统计失败'));
 	} finally {
 		state.loading = false;
 	}

@@ -23,6 +23,27 @@
 					<el-option label="全部" :value="undefined"></el-option>
 					<el-option v-for="item in state.statusOptions" :key="item.value" :label="item.label" :value="item.value"></el-option>
 				</el-select>
+				<el-select
+					v-model="state.tableData.param.origin"
+					placeholder="来源"
+					class="ml10"
+					style="max-width: 130px"
+					clearable
+					@change="getTableData"
+				>
+					<el-option v-for="item in sourceOptions" :key="item.value" :label="item.label" :value="item.value" />
+				</el-select>
+				<el-select
+					v-model="state.tableData.param.hasSTRM"
+					placeholder="STRM"
+					class="ml10"
+					style="max-width: 130px"
+					clearable
+					@change="getTableData"
+				>
+					<el-option label="已生成 STRM" :value="true" />
+					<el-option label="未生成 STRM" :value="false" />
+				</el-select>
 				<el-button size="default" type="primary" class="ml10" @click="getTableData">
 					<el-icon>
 						<ele-Search />
@@ -57,10 +78,10 @@
 				</el-table-column>
 				<el-table-column prop="followed_by" label="任务 ID" min-width="160" show-overflow-tooltip></el-table-column>
 				<el-table-column prop="download_retry_count" label="重试" width="70" show-overflow-tooltip></el-table-column>
-				<el-table-column prop="last_submit_at" label="最后提交" width="180" show-overflow-tooltip></el-table-column>
-				<el-table-column prop="download_completed_at" label="完成时间" width="180" show-overflow-tooltip></el-table-column>
+				<el-table-column label="最后提交" width="180"><template #default="{ row }">{{ formatDateTime(row.last_submit_at) }}</template></el-table-column>
+				<el-table-column label="完成时间" width="180"><template #default="{ row }">{{ formatDateTime(row.download_completed_at) }}</template></el-table-column>
 				<el-table-column prop="download_error" label="错误" min-width="160" show-overflow-tooltip></el-table-column>
-				<el-table-column prop="created_at" label="创建时间" width="180" show-overflow-tooltip></el-table-column>
+				<el-table-column label="创建时间" width="180"><template #default="{ row }">{{ formatDateTime(row.created_at) }}</template></el-table-column>
 				<el-table-column label="操作" width="340" fixed="right">
 					<template #default="scope">
 						<el-button size="small" text type="primary" @click="onOpenDetail(scope.row)">详情</el-button>
@@ -117,9 +138,9 @@
 				class="mt15"
 				:pager-count="5"
 				:page-sizes="[10, 20, 30, 50, 100]"
-				v-model:current-page="state.tableData.param.pageNum"
+				v-model:current-page="state.tableData.param.page_num"
 				background
-				v-model:page-size="state.tableData.param.pageSize"
+				v-model:page-size="state.tableData.param.page_size"
 				layout="total, sizes, prev, pager, next, jumper"
 				:total="state.tableData.total"
 			>
@@ -183,7 +204,7 @@
 				</el-card>
 
 				<el-timeline class="mt15">
-					<el-timeline-item v-for="event in state.detail.data.events" :key="event.id" :timestamp="event.created_at">
+					<el-timeline-item v-for="event in state.detail.data.events" :key="event.id" :timestamp="formatDateTime(event.created_at)">
 						<div>{{ event.message || event.event_type }}</div>
 						<div v-if="event.extra" class="event-extra">{{ event.extra }}</div>
 					</el-timeline-item>
@@ -201,6 +222,7 @@ import { useMagnetApi } from '/@/api/magnet';
 import { useDownloadApi } from '/@/api/download';
 import { useCloudDriverApi } from '/@/api/cloudDriver';
 import commonFunction from '/@/utils/commonFunction';
+import { formatDateTime, getErrorMessage } from '/@/utils/business';
 
 // 引入组件
 const MagnetDialog = defineAsyncComponent(() => import('/@/views/magnets/dialog.vue'));
@@ -214,6 +236,7 @@ type StatusOption = {
 // 定义变量内容
 const magnetDialogRef = ref();
 const selectedIds = ref<number[]>([]);
+const sourceOptions = ref<Array<{ label: string; value: string }>>([]);
 const state = reactive<MagnetState>({
 	statusOptions: [] as StatusOption[],
 	actionLoadingIds: [] as number[],
@@ -229,10 +252,12 @@ const state = reactive<MagnetState>({
 		total: 0,
 		loading: false,
 		param: {
-			pageNum: 1,
-			pageSize: 10,
+			page_num: 1,
+			page_size: 10,
 			keyword: '',
 			status: undefined as number | undefined,
+			origin: '',
+			hasSTRM: undefined as boolean | undefined,
 		},
 	},
 });
@@ -243,6 +268,12 @@ const statusTagTypes: Record<number, 'success' | 'warning' | 'info' | 'primary' 
 	2: 'primary',
 	3: 'success',
 	4: 'danger',
+};
+
+const getSourceOptions = async () => {
+	const api = useMagnetApi();
+	const res = await api.sourceOptions();
+	sourceOptions.value = res.data || [];
 };
 
 const getStatusLabel = (status: number) => {
@@ -270,7 +301,7 @@ const getStatusOptions = async () => {
 		const api = useMagnetApi();
 		const res = await api.statusOptions();
 		state.statusOptions = res.data || [];
-	} catch (error) {
+	} catch (error: unknown) {
 		state.statusOptions = [
 			{ label: '已采集', value: 0 },
 			{ label: '提交中', value: 1 },
@@ -287,15 +318,17 @@ const getTableData = async () => {
 	try {
 		const api = useMagnetApi();
 		const res = await api.list({
-			page_num: state.tableData.param.pageNum,
-			page_size: state.tableData.param.pageSize,
+			page_num: state.tableData.param.page_num,
+			page_size: state.tableData.param.page_size,
 			keyword: state.tableData.param.keyword,
 			status: state.tableData.param.status,
+			origin: state.tableData.param.origin,
+			has_strm: state.tableData.param.hasSTRM,
 		});
 		state.tableData.data = res.data.list || [];
 		state.tableData.total = res.data.total || 0;
-	} catch (error) {
-		ElMessage.error('获取数据失败');
+	} catch (error: unknown) {
+		ElMessage.error(getErrorMessage(error, '获取数据失败'));
 	} finally {
 		state.tableData.loading = false;
 	}
@@ -318,8 +351,8 @@ const onSubmitDownload = async (row: MagnetType) => {
 		const api = useDownloadApi();
 		const res = await api.submit({ ids: [row.id] });
 		handleSubmitResult(res.data);
-	} catch (error) {
-		ElMessage.error('提交下载失败');
+	} catch (error: unknown) {
+		ElMessage.error(getErrorMessage(error, '提交下载失败'));
 	} finally {
 		setActionLoading(row.id, false);
 	}
@@ -331,8 +364,8 @@ const onRetryDownload = async (row: MagnetType) => {
 		const api = useDownloadApi();
 		const res = await api.retry({ ids: [row.id] });
 		handleSubmitResult(res.data);
-	} catch (error) {
-		ElMessage.error('重试下载失败');
+	} catch (error: unknown) {
+		ElMessage.error(getErrorMessage(error, '重试下载失败'));
 	} finally {
 		setActionLoading(row.id, false);
 	}
@@ -350,8 +383,8 @@ const onOpenDetail = async (row: MagnetType) => {
 		const api = useMagnetApi();
 		const res = await api.detail({ id: row.id });
 		state.detail.data = res.data;
-	} catch (error) {
-		ElMessage.error('获取详情失败');
+	} catch (error: unknown) {
+		ElMessage.error(getErrorMessage(error, '获取详情失败'));
 	} finally {
 		state.detail.loading = false;
 	}
@@ -389,8 +422,8 @@ const onRebuildSTRM = async (row: MagnetType) => {
 		if (state.detail.visible && state.detail.data?.magnet.id === row.id) {
 			onOpenDetail(row);
 		}
-	} catch (error) {
-		ElMessage.error('重建 STRM 失败');
+	} catch (error: unknown) {
+		ElMessage.error(getErrorMessage(error, '重建 STRM 失败'));
 	} finally {
 		setActionLoading(row.id, false);
 	}
@@ -404,8 +437,8 @@ const onLoadCloudTask = async () => {
 		const api = useCloudDriverApi();
 		const res = await api.task(taskID);
 		state.detail.cloudTask = res.data;
-	} catch (error) {
-		ElMessage.error('查询网盘任务失败');
+	} catch (error: unknown) {
+		ElMessage.error(getErrorMessage(error, '查询网盘任务失败'));
 	} finally {
 		state.detail.cloudTaskLoading = false;
 	}
@@ -434,8 +467,8 @@ const onRowDel = (row: MagnetType) => {
 				await api.delete({ ids: [row.id] });
 				ElMessage.success('删除成功');
 				getTableData();
-			} catch (error) {
-				ElMessage.error('删除失败');
+			} catch (error: unknown) {
+				ElMessage.error(getErrorMessage(error, '删除失败'));
 			}
 		})
 		.catch(() => {});
@@ -459,8 +492,8 @@ const onBatchDelete = () => {
 				ElMessage.success('批量删除成功');
 				selectedIds.value = [];
 				getTableData();
-			} catch (error) {
-				ElMessage.error('批量删除失败');
+			} catch (error: unknown) {
+				ElMessage.error(getErrorMessage(error, '批量删除失败'));
 			}
 		})
 		.catch(() => {});
@@ -473,19 +506,20 @@ const handleSelectionChange = (selection: MagnetType[]) => {
 
 // 分页改变
 const onHandleSizeChange = (val: number) => {
-	state.tableData.param.pageSize = val;
+	state.tableData.param.page_size = val;
 	getTableData();
 };
 
 // 分页改变
 const onHandleCurrentChange = (val: number) => {
-	state.tableData.param.pageNum = val;
+	state.tableData.param.page_num = val;
 	getTableData();
 };
 
 // 页面加载时
 onMounted(() => {
 	getStatusOptions();
+	getSourceOptions();
 	getTableData();
 });
 </script>

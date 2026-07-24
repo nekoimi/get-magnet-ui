@@ -43,8 +43,8 @@
 					</template>
 				</el-table-column>
 				<el-table-column prop="download_retry_count" label="重试" width="70"></el-table-column>
-				<el-table-column prop="last_submit_at" label="最后提交" width="180" show-overflow-tooltip></el-table-column>
-				<el-table-column prop="download_completed_at" label="完成时间" width="180" show-overflow-tooltip></el-table-column>
+				<el-table-column label="最后提交" width="180"><template #default="{ row }">{{ formatDateTime(row.last_submit_at) }}</template></el-table-column>
+				<el-table-column label="完成时间" width="180"><template #default="{ row }">{{ formatDateTime(row.download_completed_at) }}</template></el-table-column>
 				<el-table-column prop="download_error" label="错误" min-width="180" show-overflow-tooltip></el-table-column>
 				<el-table-column label="操作" width="220" fixed="right">
 					<template #default="scope">
@@ -62,9 +62,9 @@
 				class="mt15"
 				:pager-count="5"
 				:page-sizes="[10, 20, 30, 50, 100]"
-				v-model:current-page="state.tableData.param.pageNum"
+				v-model:current-page="state.tableData.param.page_num"
 				background
-				v-model:page-size="state.tableData.param.pageSize"
+				v-model:page-size="state.tableData.param.page_size"
 				layout="total, sizes, prev, pager, next, jumper"
 				:total="state.tableData.total"
 			></el-pagination>
@@ -96,6 +96,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { useDownloadApi } from '/@/api/download';
 import { useCloudDriverApi } from '/@/api/cloudDriver';
 import commonFunction from '/@/utils/commonFunction';
+import { formatDateTime, getErrorMessage } from '/@/utils/business';
 
 const { copyText } = commonFunction();
 const selectedIds = ref<number[]>([]);
@@ -115,8 +116,8 @@ const state = reactive({
 		total: 0,
 		loading: false,
 		param: {
-			pageNum: 1,
-			pageSize: 20,
+			page_num: 1,
+			page_size: 20,
 		},
 	},
 });
@@ -127,13 +128,13 @@ const getTableData = async () => {
 		const api = useDownloadApi();
 		const res = await api.queue({
 			status: Number(state.activeStatus),
-			page_num: state.tableData.param.pageNum,
-			page_size: state.tableData.param.pageSize,
+			page_num: state.tableData.param.page_num,
+			page_size: state.tableData.param.page_size,
 		});
 		state.tableData.data = res.data.list || [];
 		state.tableData.total = res.data.total || 0;
-	} catch (error) {
-		ElMessage.error('获取下载队列失败');
+	} catch (error: unknown) {
+		ElMessage.error(getErrorMessage(error, '获取下载队列失败'));
 	} finally {
 		state.tableData.loading = false;
 	}
@@ -145,8 +146,8 @@ const getScheduler = async () => {
 		const api = useDownloadApi();
 		const res = await api.scheduler();
 		state.scheduler = res.data;
-	} catch (error) {
-		ElMessage.error('获取调度状态失败');
+	} catch (error: unknown) {
+		ElMessage.error(getErrorMessage(error, '获取调度状态失败'));
 	} finally {
 		state.schedulerLoading = false;
 	}
@@ -160,8 +161,8 @@ const onRunSchedulerOnce = async () => {
 		state.scheduler = res.data;
 		ElMessage.success('调度已执行');
 		getTableData();
-	} catch (error) {
-		ElMessage.error('运行调度失败');
+	} catch (error: unknown) {
+		ElMessage.error(getErrorMessage(error, '运行调度失败'));
 	} finally {
 		state.schedulerLoading = false;
 	}
@@ -193,8 +194,8 @@ const onBatchSubmit = async () => {
 		const api = useDownloadApi();
 		const res = await api.submit({ ids: selectedIds.value });
 		handleSubmitResult(res.data);
-	} catch (error) {
-		ElMessage.error('批量提交失败');
+	} catch (error: unknown) {
+		ElMessage.error(getErrorMessage(error, '批量提交失败'));
 	} finally {
 		state.batchLoading = false;
 	}
@@ -206,8 +207,8 @@ const onBatchRetry = async () => {
 		const api = useDownloadApi();
 		const res = await api.retry({ ids: selectedIds.value });
 		handleSubmitResult(res.data);
-	} catch (error) {
-		ElMessage.error('批量重试失败');
+	} catch (error: unknown) {
+		ElMessage.error(getErrorMessage(error, '批量重试失败'));
 	} finally {
 		state.batchLoading = false;
 	}
@@ -221,8 +222,8 @@ const onOpenCloudTask = async (taskID: string) => {
 		const api = useCloudDriverApi();
 		const res = await api.task(taskID);
 		state.cloudTask.data = res.data;
-	} catch (error) {
-		ElMessage.error('查询网盘任务失败');
+	} catch (error: unknown) {
+		ElMessage.error(getErrorMessage(error, '查询网盘任务失败'));
 	} finally {
 		state.cloudTask.loading = false;
 	}
@@ -240,17 +241,17 @@ const handleSelectionChange = (selection: MagnetType[]) => {
 
 const onTabChange = () => {
 	selectedIds.value = [];
-	state.tableData.param.pageNum = 1;
+	state.tableData.param.page_num = 1;
 	getTableData();
 };
 
 const onHandleSizeChange = (val: number) => {
-	state.tableData.param.pageSize = val;
+	state.tableData.param.page_size = val;
 	getTableData();
 };
 
 const onHandleCurrentChange = (val: number) => {
-	state.tableData.param.pageNum = val;
+	state.tableData.param.page_num = val;
 	getTableData();
 };
 

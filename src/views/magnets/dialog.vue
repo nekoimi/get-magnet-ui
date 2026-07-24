@@ -79,6 +79,7 @@
 import { reactive, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useMagnetApi } from '/@/api/magnet';
+import { getErrorMessage } from '/@/utils/business';
 
 // 定义子组件向父组件传值/事件
 const emit = defineEmits(['refresh']);
@@ -180,8 +181,8 @@ const onSubmit = async () => {
 		}
 		closeDialog();
 		emit('refresh');
-	} catch (error) {
-		ElMessage.error('操作失败');
+	} catch (error: unknown) {
+		ElMessage.error(getErrorMessage(error, '操作失败'));
 	} finally {
 		state.dialog.loading = false;
 	}
