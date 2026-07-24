@@ -41,12 +41,12 @@ service.interceptors.response.use(
                 ElMessageBox.alert(`${res.msg}，请重新登录`, '提示', {})
                     .then(() => {
                         Session.clear(); // 清除浏览器全部临时缓存
-                        window.location.href = '/'; // 去登录页
+                        window.location.href = '/#/login'; // 去登录页
                     })
                     .catch(() => {
                     });
             }
-            return Promise.reject(service.interceptors.response);
+            return Promise.reject(res);
         } else {
             return res;
         }
@@ -67,7 +67,7 @@ service.interceptors.response.use(
                             ElMessageBox.alert(`${error.response.data.msg}，请重新登录`, '提示', {})
                                 .then(() => {
                                     Session.clear(); // 清除浏览器全部临时缓存
-                                    window.location.href = '/'; // 去登录页
+                                    window.location.href = '/#/login'; // 去登录页
                                 })
                                 .catch(() => {
                                 });

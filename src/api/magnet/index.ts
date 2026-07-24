@@ -7,6 +7,7 @@ import request from '/@/utils/request';
  * @method create 创建磁力链接
  * @method update 更新磁力链接
  * @method delete 删除磁力链接
+ * @method statusOptions 获取磁力链接状态选项
  */
 export function useMagnetApi() {
 	return {
@@ -43,6 +44,12 @@ export function useMagnetApi() {
 				url: '/api/v1/magnets/delete',
 				method: 'post',
 				data,
+			});
+		},
+		statusOptions: () => {
+			return request({
+				url: '/api/v1/magnets/statusOptions',
+				method: 'get',
 			});
 		},
 	};

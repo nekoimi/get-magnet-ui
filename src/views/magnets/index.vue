@@ -21,9 +21,7 @@
 					@change="getTableData"
 				>
 					<el-option label="全部" :value="undefined"></el-option>
-					<el-option label="待处理" :value="0"></el-option>
-					<el-option label="处理中" :value="1"></el-option>
-					<el-option label="已完成" :value="2"></el-option>
+					<el-option v-for="item in state.statusOptions" :key="item.value" :label="item.label" :value="item.value"></el-option>
 				</el-select>
 				<el-button size="default" type="primary" class="ml10" @click="getTableData">
 					<el-icon>
@@ -47,22 +45,44 @@
 				<el-table-column prop="origin" label="来源" width="100" show-overflow-tooltip></el-table-column>
 				<el-table-column prop="optimal_link" label="优选链接" min-width="150" show-overflow-tooltip>
 					<template #default="scope">
-						<el-link v-if="scope.row.optimal_link" :href="scope.row.optimal_link" target="_blank" type="primary">
+						<el-link v-if="scope.row.optimal_link" type="primary" @click="onCopyOptimalLink(scope.row.optimal_link)">
 							{{ scope.row.optimal_link }}
 						</el-link>
 					</template>
 				</el-table-column>
 				<el-table-column prop="status" label="状态" width="100" show-overflow-tooltip>
 					<template #default="scope">
-						<el-tag v-if="scope.row.status === 0" type="info">待处理</el-tag>
-						<el-tag v-else-if="scope.row.status === 1" type="warning">处理中</el-tag>
-						<el-tag v-else-if="scope.row.status === 2" type="success">已完成</el-tag>
-						<el-tag v-else type="danger">未知</el-tag>
+						<el-tag :type="getStatusTagType(scope.row.status)">{{ getStatusLabel(scope.row.status) }}</el-tag>
 					</template>
 				</el-table-column>
+				<el-table-column prop="followed_by" label="任务 ID" min-width="160" show-overflow-tooltip></el-table-column>
+				<el-table-column prop="download_retry_count" label="重试" width="70" show-overflow-tooltip></el-table-column>
+				<el-table-column prop="last_submit_at" label="最后提交" width="180" show-overflow-tooltip></el-table-column>
+				<el-table-column prop="download_completed_at" label="完成时间" width="180" show-overflow-tooltip></el-table-column>
+				<el-table-column prop="download_error" label="错误" min-width="160" show-overflow-tooltip></el-table-column>
 				<el-table-column prop="created_at" label="创建时间" width="180" show-overflow-tooltip></el-table-column>
-				<el-table-column label="操作" width="150" fixed="right">
+				<el-table-column label="操作" width="240" fixed="right">
 					<template #default="scope">
+						<el-button
+							v-if="scope.row.status === 0"
+							size="small"
+							text
+							type="success"
+							:loading="isActionLoading(scope.row.id)"
+							@click="onSubmitDownload(scope.row)"
+						>
+							提交
+						</el-button>
+						<el-button
+							v-if="scope.row.status === 4"
+							size="small"
+							text
+							type="warning"
+							:loading="isActionLoading(scope.row.id)"
+							@click="onRetryDownload(scope.row)"
+						>
+							重试
+						</el-button>
 						<el-button size="small" text type="primary" @click="onOpenEditMagnet('edit', scope.row)">编辑</el-button>
 						<el-button size="small" text type="danger" @click="onRowDel(scope.row)">删除</el-button>
 					</template>
@@ -98,14 +118,24 @@
 import { defineAsyncComponent, reactive, onMounted, ref } from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import { useMagnetApi } from '/@/api/magnet';
+import { useDownloadApi } from '/@/api/download';
+import commonFunction from '/@/utils/commonFunction';
 
 // 引入组件
 const MagnetDialog = defineAsyncComponent(() => import('/@/views/magnets/dialog.vue'));
+const { copyText } = commonFunction();
+
+type StatusOption = {
+	label: string;
+	value: number;
+};
 
 // 定义变量内容
 const magnetDialogRef = ref();
 const selectedIds = ref<number[]>([]);
 const state = reactive<MagnetState>({
+	statusOptions: [] as StatusOption[],
+	actionLoadingIds: [] as number[],
 	tableData: {
 		data: [],
 		total: 0,
@@ -118,6 +148,50 @@ const state = reactive<MagnetState>({
 		},
 	},
 });
+
+const statusTagTypes: Record<number, 'success' | 'warning' | 'info' | 'primary' | 'danger'> = {
+	0: 'info',
+	1: 'warning',
+	2: 'primary',
+	3: 'success',
+	4: 'danger',
+};
+
+const getStatusLabel = (status: number) => {
+	return state.statusOptions.find((item) => item.value === status)?.label || '未知';
+};
+
+const getStatusTagType = (status: number) => {
+	return statusTagTypes[status] || 'danger';
+};
+
+const isActionLoading = (id: number) => {
+	return state.actionLoadingIds.includes(id);
+};
+
+const setActionLoading = (id: number, loading: boolean) => {
+	if (loading) {
+		if (!state.actionLoadingIds.includes(id)) state.actionLoadingIds.push(id);
+		return;
+	}
+	state.actionLoadingIds = state.actionLoadingIds.filter((item) => item !== id);
+};
+
+const getStatusOptions = async () => {
+	try {
+		const api = useMagnetApi();
+		const res = await api.statusOptions();
+		state.statusOptions = res.data || [];
+	} catch (error) {
+		state.statusOptions = [
+			{ label: '已采集', value: 0 },
+			{ label: '提交中', value: 1 },
+			{ label: '下载中', value: 2 },
+			{ label: '已完成', value: 3 },
+			{ label: '失败', value: 4 },
+		];
+	}
+};
 
 // 获取表格数据
 const getTableData = async () => {
@@ -137,6 +211,47 @@ const getTableData = async () => {
 	} finally {
 		state.tableData.loading = false;
 	}
+};
+
+const handleSubmitResult = (data: any) => {
+	const success = data?.success || 0;
+	const failed = data?.failed || 0;
+	if (failed > 0) {
+		ElMessage.warning(`提交完成，成功 ${success} 条，失败 ${failed} 条`);
+	} else {
+		ElMessage.success(`提交成功 ${success} 条`);
+	}
+	getTableData();
+};
+
+const onSubmitDownload = async (row: MagnetType) => {
+	setActionLoading(row.id, true);
+	try {
+		const api = useDownloadApi();
+		const res = await api.submit({ ids: [row.id] });
+		handleSubmitResult(res.data);
+	} catch (error) {
+		ElMessage.error('提交下载失败');
+	} finally {
+		setActionLoading(row.id, false);
+	}
+};
+
+const onRetryDownload = async (row: MagnetType) => {
+	setActionLoading(row.id, true);
+	try {
+		const api = useDownloadApi();
+		const res = await api.retry({ ids: [row.id] });
+		handleSubmitResult(res.data);
+	} catch (error) {
+		ElMessage.error('重试下载失败');
+	} finally {
+		setActionLoading(row.id, false);
+	}
+};
+
+const onCopyOptimalLink = (link: string) => {
+	copyText(link);
 };
 
 // 打开新增磁力链接弹窗
@@ -213,6 +328,7 @@ const onHandleCurrentChange = (val: number) => {
 
 // 页面加载时
 onMounted(() => {
+	getStatusOptions();
 	getTableData();
 });
 </script>

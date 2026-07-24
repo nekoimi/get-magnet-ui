@@ -347,6 +347,13 @@ declare type MagnetType = {
 	status: number;
 	actress0: string;
 	followed_by: string;
+	download_error?: string;
+	download_retry_count?: number;
+	last_submit_at?: string;
+	download_completed_at?: string;
+	play_file_path?: string;
+	play_file_size?: number;
+	strm_path?: string;
 };
 
 interface MagnetTableType extends TableType {
@@ -355,4 +362,9 @@ interface MagnetTableType extends TableType {
 
 declare interface MagnetState {
 	tableData: MagnetTableType;
+	actionLoadingIds: number[];
+	statusOptions: Array<{
+		label: string;
+		value: number;
+	}>;
 }
