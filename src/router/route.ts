@@ -237,6 +237,35 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 				],
 			},
 			{
+				path: '/settings/runtime',
+				name: 'settingsRuntime',
+				component: () => import('/@/views/settings/index.vue'),
+				meta: {
+					title: '系统设置', isLink: '', isHide: false, isKeepAlive: true, isAffix: false,
+					isIframe: false, roles: ['admin'], icon: 'ele-Setting',
+				},
+			},
+			{
+				path: '/ops',
+				name: 'ops',
+				component: () => import('/@/layout/routerView/parent.vue'),
+				redirect: '/ops/health',
+				meta: {
+					title: '运维监控', isLink: '', isHide: false, isKeepAlive: true, isAffix: false,
+					isIframe: false, roles: ['admin'], icon: 'ele-Monitor',
+				},
+				children: [
+					{
+						path: '/ops/health', name: 'opsHealth', component: () => import('/@/views/ops/health/index.vue'),
+						meta: { title: '健康与版本', isLink: '', isHide: false, isKeepAlive: true, isAffix: false, isIframe: false, roles: ['admin'], icon: 'ele-FirstAidKit' },
+					},
+					{
+						path: '/ops/jobs', name: 'opsJobs', component: () => import('/@/views/ops/jobs/index.vue'),
+						meta: { title: '调度任务', isLink: '', isHide: false, isKeepAlive: true, isAffix: false, isIframe: false, roles: ['admin'], icon: 'ele-Clock' },
+					},
+				],
+			},
+			{
 				path: '/limits',
 				name: 'limits',
 				component: () => import('/@/layout/routerView/parent.vue'),
