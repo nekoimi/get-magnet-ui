@@ -352,8 +352,46 @@ declare type MagnetType = {
 	last_submit_at?: string;
 	download_completed_at?: string;
 	play_file_path?: string;
+	play_file_id?: string;
 	play_file_size?: number;
 	strm_path?: string;
+	post_process_done?: boolean;
+};
+
+declare type MagnetEventType = {
+	id: number;
+	created_at: string;
+	magnet_id: number;
+	event_type: string;
+	message?: string;
+	extra?: string;
+};
+
+declare type MagnetDetailType = {
+	magnet: MagnetType;
+	status_label: string;
+	link_count: number;
+	has_play_info: boolean;
+	play_url?: string;
+	post_process: {
+		done: boolean;
+		play_file_id?: string;
+		play_file_path?: string;
+		play_file_size?: number;
+		strm_path?: string;
+	};
+	download: {
+		task_id?: string;
+		error?: string;
+		retry_count: number;
+		last_submit_at?: string;
+		completed_at?: string;
+	};
+	events: MagnetEventType[];
+	status_options: Array<{
+		label: string;
+		value: number;
+	}>;
 };
 
 interface MagnetTableType extends TableType {
@@ -367,4 +405,11 @@ declare interface MagnetState {
 		label: string;
 		value: number;
 	}>;
+	detail: {
+		visible: boolean;
+		loading: boolean;
+		data?: MagnetDetailType;
+		cloudTask?: any;
+		cloudTaskLoading: boolean;
+	};
 }

@@ -61,8 +61,9 @@
 				<el-table-column prop="download_completed_at" label="完成时间" width="180" show-overflow-tooltip></el-table-column>
 				<el-table-column prop="download_error" label="错误" min-width="160" show-overflow-tooltip></el-table-column>
 				<el-table-column prop="created_at" label="创建时间" width="180" show-overflow-tooltip></el-table-column>
-				<el-table-column label="操作" width="240" fixed="right">
+				<el-table-column label="操作" width="340" fixed="right">
 					<template #default="scope">
+						<el-button size="small" text type="primary" @click="onOpenDetail(scope.row)">详情</el-button>
 						<el-button
 							v-if="scope.row.status === 0"
 							size="small"
@@ -83,6 +84,20 @@
 						>
 							重试
 						</el-button>
+						<el-button v-if="scope.row.status === 3 && scope.row.play_file_path" size="small" text type="success" @click="onOpenPlay(scope.row)">
+							播放
+						</el-button>
+						<el-button
+							v-if="scope.row.status === 3 && scope.row.followed_by"
+							size="small"
+							text
+							type="warning"
+							:loading="isActionLoading(scope.row.id)"
+							@click="onRebuildSTRM(scope.row)"
+						>
+							STRM
+						</el-button>
+						<el-button v-if="scope.row.download_error" size="small" text type="danger" @click="onShowError(scope.row)">错误</el-button>
 						<el-button size="small" text type="primary" @click="onOpenEditMagnet('edit', scope.row)">编辑</el-button>
 						<el-button size="small" text type="danger" @click="onRowDel(scope.row)">删除</el-button>
 					</template>
@@ -110,6 +125,71 @@
 			>
 			</el-pagination>
 		</el-card>
+		<el-drawer v-model="state.detail.visible" size="560px" title="资源详情">
+			<div v-loading="state.detail.loading" class="magnet-detail" v-if="state.detail.data">
+				<el-descriptions :column="1" border>
+					<el-descriptions-item label="编号">{{ state.detail.data.magnet.number }}</el-descriptions-item>
+					<el-descriptions-item label="标题">{{ state.detail.data.magnet.title }}</el-descriptions-item>
+					<el-descriptions-item label="来源">{{ state.detail.data.magnet.origin }}</el-descriptions-item>
+					<el-descriptions-item label="状态">
+						<el-tag :type="getStatusTagType(state.detail.data.magnet.status)">{{ state.detail.data.status_label }}</el-tag>
+					</el-descriptions-item>
+					<el-descriptions-item label="链接数量">{{ state.detail.data.link_count }}</el-descriptions-item>
+					<el-descriptions-item label="任务 ID">
+						<el-link v-if="state.detail.data.download.task_id" type="primary" @click="copyText(state.detail.data.download.task_id)">
+							{{ state.detail.data.download.task_id }}
+						</el-link>
+						<span v-else>-</span>
+					</el-descriptions-item>
+					<el-descriptions-item label="播放文件">{{ state.detail.data.post_process.play_file_path || '-' }}</el-descriptions-item>
+					<el-descriptions-item label="STRM">
+						<el-link v-if="state.detail.data.post_process.strm_path" type="primary" @click="copyText(state.detail.data.post_process.strm_path)">
+							{{ state.detail.data.post_process.strm_path }}
+						</el-link>
+						<span v-else>-</span>
+					</el-descriptions-item>
+					<el-descriptions-item label="下载错误">{{ state.detail.data.download.error || '-' }}</el-descriptions-item>
+				</el-descriptions>
+
+				<div class="detail-actions mt15">
+					<el-button v-if="state.detail.data.play_url" type="success" @click="onOpenPlayURL(state.detail.data.play_url)">打开播放地址</el-button>
+					<el-button v-if="state.detail.data.play_url" @click="copyText(state.detail.data.play_url)">复制播放地址</el-button>
+					<el-button v-if="state.detail.data.download.task_id" :loading="state.detail.cloudTaskLoading" @click="onLoadCloudTask">
+						查询网盘任务
+					</el-button>
+				</div>
+
+				<el-table v-if="state.detail.data.magnet.links?.length" :data="state.detail.data.magnet.links.map((link) => ({ link }))" class="mt15" max-height="180">
+					<el-table-column prop="link" label="全部磁力链接" show-overflow-tooltip>
+						<template #default="scope">
+							<el-link type="primary" @click="copyText(scope.row.link)">{{ scope.row.link }}</el-link>
+						</template>
+					</el-table-column>
+				</el-table>
+
+				<el-card v-if="state.detail.cloudTask" shadow="never" class="mt15">
+					<el-descriptions :column="1" border>
+						<el-descriptions-item label="网盘状态">{{ state.detail.cloudTask.status }}</el-descriptions-item>
+						<el-descriptions-item label="进度">{{ state.detail.cloudTask.progress || 0 }}%</el-descriptions-item>
+						<el-descriptions-item label="保存路径">{{ state.detail.cloudTask.save_path || '-' }}</el-descriptions-item>
+						<el-descriptions-item label="错误">{{ state.detail.cloudTask.error_message || '-' }}</el-descriptions-item>
+						<el-descriptions-item label="Warnings">{{ (state.detail.cloudTask.warnings || []).join('；') || '-' }}</el-descriptions-item>
+					</el-descriptions>
+					<el-table :data="state.detail.cloudTask.files || []" class="mt15" max-height="180">
+						<el-table-column prop="name" label="文件" show-overflow-tooltip></el-table-column>
+						<el-table-column prop="path" label="路径" show-overflow-tooltip></el-table-column>
+						<el-table-column prop="size" label="大小" width="120"></el-table-column>
+					</el-table>
+				</el-card>
+
+				<el-timeline class="mt15">
+					<el-timeline-item v-for="event in state.detail.data.events" :key="event.id" :timestamp="event.created_at">
+						<div>{{ event.message || event.event_type }}</div>
+						<div v-if="event.extra" class="event-extra">{{ event.extra }}</div>
+					</el-timeline-item>
+				</el-timeline>
+			</div>
+		</el-drawer>
 		<MagnetDialog ref="magnetDialogRef" @refresh="getTableData()" />
 	</div>
 </template>
@@ -119,6 +199,7 @@ import { defineAsyncComponent, reactive, onMounted, ref } from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import { useMagnetApi } from '/@/api/magnet';
 import { useDownloadApi } from '/@/api/download';
+import { useCloudDriverApi } from '/@/api/cloudDriver';
 import commonFunction from '/@/utils/commonFunction';
 
 // 引入组件
@@ -136,6 +217,13 @@ const selectedIds = ref<number[]>([]);
 const state = reactive<MagnetState>({
 	statusOptions: [] as StatusOption[],
 	actionLoadingIds: [] as number[],
+	detail: {
+		visible: false,
+		loading: false,
+		data: undefined,
+		cloudTask: undefined,
+		cloudTaskLoading: false,
+	},
 	tableData: {
 		data: [],
 		total: 0,
@@ -254,6 +342,75 @@ const onCopyOptimalLink = (link: string) => {
 	copyText(link);
 };
 
+const onOpenDetail = async (row: MagnetType) => {
+	state.detail.visible = true;
+	state.detail.loading = true;
+	state.detail.cloudTask = undefined;
+	try {
+		const api = useMagnetApi();
+		const res = await api.detail({ id: row.id });
+		state.detail.data = res.data;
+	} catch (error) {
+		ElMessage.error('获取详情失败');
+	} finally {
+		state.detail.loading = false;
+	}
+};
+
+const onShowError = (row: MagnetType) => {
+	ElMessageBox.alert(row.download_error || '-', `下载错误：${row.number}`, {
+		confirmButtonText: '关闭',
+	});
+};
+
+const buildPlayURL = (row: MagnetType) => {
+	const params = new URLSearchParams();
+	if (row.play_file_id) params.set('file_id', row.play_file_id);
+	if (row.play_file_path) params.set('path', row.play_file_path);
+	const query = params.toString();
+	return `/api/play/${encodeURIComponent(row.number)}${query ? `?${query}` : ''}`;
+};
+
+const onOpenPlay = (row: MagnetType) => {
+	onOpenPlayURL(buildPlayURL(row));
+};
+
+const onOpenPlayURL = (url: string) => {
+	window.open(url, '_blank');
+};
+
+const onRebuildSTRM = async (row: MagnetType) => {
+	setActionLoading(row.id, true);
+	try {
+		const api = useMagnetApi();
+		await api.rebuildSTRM({ id: row.id });
+		ElMessage.success('STRM 已重新生成');
+		getTableData();
+		if (state.detail.visible && state.detail.data?.magnet.id === row.id) {
+			onOpenDetail(row);
+		}
+	} catch (error) {
+		ElMessage.error('重建 STRM 失败');
+	} finally {
+		setActionLoading(row.id, false);
+	}
+};
+
+const onLoadCloudTask = async () => {
+	const taskID = state.detail.data?.download.task_id;
+	if (!taskID) return;
+	state.detail.cloudTaskLoading = true;
+	try {
+		const api = useCloudDriverApi();
+		const res = await api.task(taskID);
+		state.detail.cloudTask = res.data;
+	} catch (error) {
+		ElMessage.error('查询网盘任务失败');
+	} finally {
+		state.detail.cloudTaskLoading = false;
+	}
+};
+
 // 打开新增磁力链接弹窗
 const onOpenAddMagnet = (type: string) => {
 	magnetDialogRef.value.openDialog(type);
@@ -342,6 +499,18 @@ onMounted(() => {
 		overflow: auto;
 		.el-table {
 			flex: 1;
+		}
+	}
+	.magnet-detail {
+		.detail-actions {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+		}
+		.event-extra {
+			margin-top: 4px;
+			color: var(--el-text-color-secondary);
+			word-break: break-all;
 		}
 	}
 }

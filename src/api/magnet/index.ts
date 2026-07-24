@@ -52,5 +52,26 @@ export function useMagnetApi() {
 				method: 'get',
 			});
 		},
+		markStatus: (data: object) => {
+			return request({
+				url: '/api/v1/magnets/markStatus',
+				method: 'post',
+				data,
+			});
+		},
+		rebuildSTRM: (data: object) => {
+			return request({
+				url: '/api/v1/magnets/rebuildSTRM',
+				method: 'post',
+				data,
+			});
+		},
+		rebuildSTRMBatch: (data: object) => {
+			return request({
+				url: '/api/v1/magnets/rebuildSTRMBatch',
+				method: 'post',
+				data,
+			});
+		},
 	};
 }
