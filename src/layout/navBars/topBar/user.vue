@@ -28,33 +28,9 @@
 				</el-dropdown-menu>
 			</template>
 		</el-dropdown>
-		<div class="layout-navbars-breadcrumb-user-icon" @click="onSearchClick">
-			<el-icon :title="$t('message.user.title2')">
-				<ele-Search />
-			</el-icon>
-		</div>
 		<div class="layout-navbars-breadcrumb-user-icon" @click="onLayoutSetingClick">
 			<i class="icon-skin iconfont" :title="$t('message.user.title3')"></i>
 		</div>
-		<div class="layout-navbars-breadcrumb-user-icon" ref="userNewsBadgeRef" v-click-outside="onUserNewsClick">
-			<el-badge :is-dot="true">
-				<el-icon :title="$t('message.user.title4')">
-					<ele-Bell />
-				</el-icon>
-			</el-badge>
-		</div>
-		<el-popover
-			ref="userNewsRef"
-			:virtual-ref="userNewsBadgeRef"
-			placement="bottom"
-			trigger="click"
-			transition="el-zoom-in-top"
-			virtual-triggering
-			:width="300"
-			:persistent="false"
-		>
-			<UserNews />
-		</el-popover>
 		<div class="layout-navbars-breadcrumb-user-icon mr10" @click="onScreenfullClick">
 			<i
 				class="iconfont"
@@ -74,7 +50,7 @@
 				<el-dropdown-menu>
 <!--					<el-dropdown-item command="/home">{{ $t('message.user.dropdown1') }}</el-dropdown-item>-->
 <!--					<el-dropdown-item command="wareHouse">{{ $t('message.user.dropdown6') }}</el-dropdown-item>-->
-					<el-dropdown-item command="/personal">{{ $t('message.user.dropdown2') }}</el-dropdown-item>
+<!--					<el-dropdown-item command="/personal">{{ $t('message.user.dropdown2') }}</el-dropdown-item>-->
 <!--					<el-dropdown-item command="/404">{{ $t('message.user.dropdown3') }}</el-dropdown-item>-->
 <!--					<el-dropdown-item command="/401">{{ $t('message.user.dropdown4') }}</el-dropdown-item>-->
 					<el-dropdown-item divided command="logOut">{{ $t('message.user.dropdown5') }}</el-dropdown-item>
@@ -86,9 +62,9 @@
 </template>
 
 <script setup lang="ts" name="layoutBreadcrumbUser">
-import { defineAsyncComponent, ref, unref, computed, reactive, onMounted } from 'vue';
+import { computed, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { ElMessageBox, ElMessage, ClickOutside as vClickOutside } from 'element-plus';
+import { ElMessageBox, ElMessage } from 'element-plus';
 import screenfull from 'screenfull';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
@@ -98,20 +74,13 @@ import other from '/@/utils/other';
 import mittBus from '/@/utils/mitt';
 import { Session, Local } from '/@/utils/storage';
 
-// 引入组件
-const UserNews = defineAsyncComponent(() => import('/@/layout/navBars/topBar/userNews.vue'));
-// const Search = defineAsyncComponent(() => import('/@/layout/navBars/topBar/search.vue'));
-
 // 定义变量内容
-const userNewsRef = ref();
-const userNewsBadgeRef = ref();
 const { locale, t } = useI18n();
 const router = useRouter();
 const stores = useUserInfo();
 const storesThemeConfig = useThemeConfig();
 const { userInfos } = storeToRefs(stores);
 const { themeConfig } = storeToRefs(storesThemeConfig);
-const searchRef = ref();
 const state = reactive({
 	isScreenfull: false,
 	disabledI18n: 'zh-cn',
@@ -138,10 +107,6 @@ const onScreenfullClick = () => {
 		if (screenfull.isFullscreen) state.isScreenfull = true;
 		else state.isScreenfull = false;
 	});
-};
-// 消息通知点击时
-const onUserNewsClick = () => {
-	unref(userNewsRef).popperRef?.delayHide?.();
 };
 // 布局配置 icon 点击时
 const onLayoutSetingClick = () => {
@@ -186,10 +151,6 @@ const onHandleCommandClick = (path: string) => {
 	} else {
 		router.push(path);
 	}
-};
-// 菜单搜索点击
-const onSearchClick = () => {
-	searchRef.value.openSearch();
 };
 // 组件大小改变
 const onComponentSizeChange = (size: string) => {

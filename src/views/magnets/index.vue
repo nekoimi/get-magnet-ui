@@ -125,6 +125,12 @@
 				</el-table-column>
 			</el-table>
 			<div class="mt15" v-if="selectedIds.length > 0">
+				<el-button size="default" type="primary" @click="onBatchCopyOptimalLinks">
+					<el-icon>
+						<ele-DocumentCopy />
+					</el-icon>
+					批量复制优选链接 ({{ selectedIds.length }})
+				</el-button>
 				<el-button size="default" type="danger" @click="onBatchDelete">
 					<el-icon>
 						<ele-Delete />
@@ -236,6 +242,7 @@ type StatusOption = {
 // 定义变量内容
 const magnetDialogRef = ref();
 const selectedIds = ref<number[]>([]);
+const selectedRows = ref<MagnetType[]>([]);
 const sourceOptions = ref<Array<{ label: string; value: string }>>([]);
 const state = reactive<MagnetState>({
 	statusOptions: [] as StatusOption[],
@@ -375,6 +382,15 @@ const onCopyOptimalLink = (link: string) => {
 	copyText(link);
 };
 
+const onBatchCopyOptimalLinks = () => {
+	const links = selectedRows.value.map((item) => item.optimal_link?.trim()).filter((link): link is string => Boolean(link));
+	if (links.length === 0) {
+		ElMessage.warning('选中的数据没有优选链接');
+		return;
+	}
+	copyText(links.join('\n'));
+};
+
 const onOpenDetail = async (row: MagnetType) => {
 	state.detail.visible = true;
 	state.detail.loading = true;
@@ -491,6 +507,7 @@ const onBatchDelete = () => {
 				await api.delete({ ids: selectedIds.value });
 				ElMessage.success('批量删除成功');
 				selectedIds.value = [];
+				selectedRows.value = [];
 				getTableData();
 			} catch (error: unknown) {
 				ElMessage.error(getErrorMessage(error, '批量删除失败'));
@@ -501,6 +518,7 @@ const onBatchDelete = () => {
 
 // 表格选择变化
 const handleSelectionChange = (selection: MagnetType[]) => {
+	selectedRows.value = selection;
 	selectedIds.value = selection.map((item) => item.id);
 };
 

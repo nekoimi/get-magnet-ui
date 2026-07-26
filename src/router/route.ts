@@ -160,7 +160,7 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 				name: 'magnets',
 				component: () => import('/@/views/magnets/index.vue'),
 				meta: {
-					title: '磁力链接管理',
+					title: '磁力链接',
 					isLink: '',
 					isHide: false,
 					isKeepAlive: true,
@@ -1260,7 +1260,7 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 				meta: {
 					title: 'message.router.personal',
 					isLink: '',
-					isHide: false,
+					isHide: true,
 					isKeepAlive: true,
 					isAffix: false,
 					isIframe: false,
